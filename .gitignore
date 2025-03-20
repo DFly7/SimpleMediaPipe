@@ -14,3 +14,8 @@ SimpleCamera/Pods/MediaPipeTasksCommon/
 *.log
 *.swp
 .DS_Store
+
+# Ignore large MediaPipe files
+SimpleCamera/Pods/MediaPipeTasksCommon/frameworks/graph_libraries/libMediaPipeTasksCommon_device_graph.a
+SimpleCamera/Pods/MediaPipeTasksCommon/frameworks/graph_libraries/libMediaPipeTasksCommon_simulator_graph.a
+SimpleCamera/Pods/MediaPipeTasksCommon/frameworks/MediaPipeTasksCommon.xcframework/ios-arm64_x86_64-simulator/MediaPipeTasksCommon.framework/MediaPipeTasksCommon
