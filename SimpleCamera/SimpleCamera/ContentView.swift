@@ -5,7 +5,7 @@
 
 import SwiftUI
 import AVFoundation
-import MediaPipe // Make sure to install MediaPipe via CocoaPods or Swift Package Manager
+import MediaPipeTasksVision
 
 // MARK: - Content View
 struct ContentView: View {
@@ -232,81 +232,98 @@ struct CameraPreviewView: UIViewRepresentable {
 
 // MARK: - Pose Detector
 class PoseDetector: ObservableObject {
-    private var poseTracker: MPPPose?
-    
+    private var poseLandmarker: PoseLandmarker?
+
     // Published properties for pose data
-    @Published var posePoints: [CGPoint] = []
-    @Published var connections: [(Int, Int)] = []
-    
+    @Published var posePoints: [CGPoint] =
+    @Published var connections: [(Int, Int)] =
+    private var videoSize: CGSize?
+
     init() {
         setupPoseDetector()
         setupConnectionList()
     }
-    
+
     private func setupPoseDetector() {
-        // Create pose tracking options
-        let poseOptions = MPPPoseTrackerOptions()
-        poseOptions.detectorOptions.minDetectionConfidence = 0.5
-        poseOptions.trackerOptions.minTrackingConfidence = 0.5
-        poseOptions.runningMode = .video
-        
-        // Initialize the pose detector
-        poseTracker = try? MPPPose(options: poseOptions)
+        let modelPath = Bundle.main.path(forResource: "pose_landmarker_lite", ofType: "task", inDirectory: "Models")
+
+        guard let path = modelPath else {
+            print("Error: Pose landmarker model not found in Models folder.")
+            return
+        }
+
+        let options = PoseLandmarkerOptions()
+        options.runningMode = .liveStream
+        options.delegate = self
+        options.minPoseDetectionConfidence = 0.5
+        options.minPosePresenceConfidence = 0.5
+        options.minTrackingConfidence = 0.5
+
+        do {
+            poseLandmarker = try PoseLandmarker.create(options: options, modelPath: path)
+        } catch {
+            print("Error creating pose landmarker: \(error)")
+        }
     }
-    
+
     private func setupConnectionList() {
-        // Define the connections between pose landmarks (similar to POSE_CONNECTIONS in Python)
+        // Define the connections between pose landmarks (using MediaPipe's standard indices)
         connections = [
-            // Connections for the face
-            (0, 1), (1, 2), (2, 3), (3, 7), (0, 4), (4, 5), (5, 6), (6, 8),
-            
-            // Connections for the body
-            (9, 10), (11, 13), (13, 15), (15, 17), (15, 19), (15, 21),
-            (17, 19), (12, 14), (14, 16), (16, 18), (16, 20), (16, 22),
-            (18, 20), (11, 12), (11, 23), (12, 24), (23, 24),
-            
-            // Connections for the legs
-            (23, 25), (25, 27), (27, 29), (27, 31), (24, 26), (26, 28), (28, 30), (28, 32)
+            (0, 1), (1, 2), (2, 3), (3, 7), (0, 4), (4, 5), (5, 6), (6, 8), (9, 10),
+            (11, 12), (11, 13), (13, 15), (12, 14), (14, 16), (15, 17), (17, 19),
+            (19, 15), (15, 21), (17, 21), (12, 16), (16, 18), (18, 20), (20, 16),
+            (11, 23), (12, 24), (23, 24), (23, 25), (25, 27), (27, 29), (29, 31),
+            (24, 26), (26, 28), (28, 30), (30, 32)
         ]
     }
-    
+
     func processSampleBuffer(_ sampleBuffer: CMSampleBuffer) {
-        guard let poseTracker = poseTracker,
+        guard let poseLandmarker = poseLandmarker,
               let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
         }
-        
-        // Convert to MediaPipe image format
-        let mpImage = try? MPPImage(pixelBuffer: pixelBuffer, orientation: .up)
-        
-        guard let image = mpImage else { return }
-        
-        // Process the image with MediaPipe Pose
+
+        let currentTimeMs = Date().timeIntervalSince1970 * 1000
+
         do {
-            let poseResult = try poseTracker.track(image: image)
-            
-            // Update the pose points
-            DispatchQueue.main.async {
-                self.updatePosePoints(from: poseResult)
+            let mpImage = MLImage(pixelBuffer: pixelBuffer)
+            if videoSize == nil {
+                videoSize = CGSize(width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetHeight(pixelBuffer))
             }
+            try poseLandmarker.detectAsync(image: mpImage, timestampInMilliseconds: Int(currentTimeMs))
         } catch {
-            print("Error tracking pose: \(error)")
+            print("Error running pose landmarker: \(error)")
         }
     }
-    
-    private func updatePosePoints(from result: MPPPoseResult) {
-        guard let landmarks = result.poseLandmarks else {
-            self.posePoints = []
+
+    private func updatePosePoints(from result: PoseLandmarkerResult?) {
+        guard let result = result, let landmarks = result.poseLandmarks.first else {
+            self.posePoints =
             return
         }
-        
-        // Convert normalized coordinates to points
-        self.posePoints = landmarks.map { landmark in
-            CGPoint(x: CGFloat(landmark.x), y: CGFloat(landmark.y))
+
+        guard let videoSize = self.videoSize else { return }
+
+        // Convert normalized landmarks to points based on video size
+        self.posePoints = landmarks.landmark.map { landmark in
+            CGPoint(x: CGFloat(landmark.x) * videoSize.width, y: CGFloat(landmark.y) * videoSize.height)
         }
     }
 }
 
+// MARK: - PoseLandmarkerDelegate
+extension PoseDetector: PoseLandmarkerDelegate {
+    func poseLandmarker(_ poseLandmarker: PoseLandmarker, didFinishDetection result: Result<PoseLandmarkerResult, Error>) {
+        switch result {
+        case .success(let poseResult):
+            DispatchQueue.main.async {
+                self.updatePosePoints(from: poseResult)
+            }
+        case .failure(let error):
+            print("Pose estimation failed: \(error)")
+        }
+    }
+}
 // MARK: - Pose Overlay View
 struct PoseOverlayView: View {
     let posePoints: [CGPoint]

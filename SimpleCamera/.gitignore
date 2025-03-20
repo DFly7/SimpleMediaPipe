@@ -1,3 +1,21 @@
-SimpleCamera.xcworkspace/xcuserdata/
-Pods/Pods.xcodeproj/xcuserdata/
-*.xcscheme
+# Ignore Pods directory (Cocoapods dependencies)
+Pods/
+
+# Ignore Xcode project build files
+*.xcworkspace
+*.xcuserstate
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
+
+# Ignore MediaPipe-related large files
+SimpleCamera/Pods/MediaPipeTasksCommon/
+
+# Ignore other common unnecessary files and directories
+*.log
+*.swp
+.DS_Store
+
+# Ignore large MediaPipe files
+SimpleCamera/Pods/MediaPipeTasksCommon/frameworks/graph_libraries/libMediaPipeTasksCommon_device_graph.a
+SimpleCamera/Pods/MediaPipeTasksCommon/frameworks/graph_libraries/libMediaPipeTasksCommon_simulator_graph.a
+SimpleCamera/Pods/MediaPipeTasksCommon/frameworks/MediaPipeTasksCommon.xcframework/ios-arm64_x86_64-simulator/MediaPipeTasksCommon.framework/MediaPipeTasksCommon
