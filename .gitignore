@@ -1,0 +1,16 @@
+# Ignore Pods directory (Cocoapods dependencies)
+Pods/
+
+# Ignore Xcode project build files
+*.xcworkspace
+*.xcuserstate
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcuserdata/
+
+# Ignore MediaPipe-related large files
+SimpleCamera/Pods/MediaPipeTasksCommon/
+
+# Ignore other common unnecessary files and directories
+*.log
+*.swp
+.DS_Store
