@@ -2,19 +2,23 @@ PODS:
   - MediaPipeTasksCommon (0.10.21)
   - MediaPipeTasksVision (0.10.21):
     - MediaPipeTasksCommon (= 0.10.21)
+  - Starscream (4.0.8)
 
 DEPENDENCIES:
   - MediaPipeTasksVision
+  - Starscream (~> 4.0.0)
 
 SPEC REPOS:
   trunk:
     - MediaPipeTasksCommon
     - MediaPipeTasksVision
+    - Starscream
 
 SPEC CHECKSUMS:
   MediaPipeTasksCommon: 6cfa29170d4900f04d250ad95ec058f14a741f38
   MediaPipeTasksVision: 7b1c0f5a5820e87e9d96926f5e65d8cd3744fac2
+  Starscream: 19b5533ddb925208db698f0ac508a100b884a1b9
 
-PODFILE CHECKSUM: 7db128fbba0fbc80fb859c9400cff9678e5f6420
+PODFILE CHECKSUM: 1cc245aed6a3528304df241ec1472ae4ed8f07aa
 
 COCOAPODS: 1.16.2

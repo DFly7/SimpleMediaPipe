@@ -1,13 +1,18 @@
+ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES
 CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO
 FRAMEWORK_SEARCH_PATHS = $(inherited) "${PODS_ROOT}/MediaPipeTasksCommon/frameworks" "${PODS_ROOT}/MediaPipeTasksVision/frameworks" "${PODS_XCFRAMEWORKS_BUILD_DIR}/MediaPipeTasksCommon" "${PODS_XCFRAMEWORKS_BUILD_DIR}/MediaPipeTasksVision"
 GCC_PREPROCESSOR_DEFINITIONS = $(inherited) COCOAPODS=1
-OTHER_LDFLAGS = $(inherited) -ObjC -l"c++" -framework "AVFoundation" -framework "Accelerate" -framework "AssetsLibrary" -framework "CoreFoundation" -framework "CoreGraphics" -framework "CoreImage" -framework "CoreMedia" -framework "CoreVideo" -framework "MediaPipeTasksCommon" -framework "MediaPipeTasksVision" -framework "QuartzCore"
+LIBRARY_SEARCH_PATHS = $(inherited) "${PODS_CONFIGURATION_BUILD_DIR}/Starscream" "${TOOLCHAIN_DIR}/usr/lib/swift/${PLATFORM_NAME}" /usr/lib/swift
+OTHER_CFLAGS = $(inherited) -fmodule-map-file="${PODS_CONFIGURATION_BUILD_DIR}/Starscream/Starscream.modulemap"
+OTHER_LDFLAGS = $(inherited) -ObjC -l"Starscream" -l"c++" -framework "AVFoundation" -framework "Accelerate" -framework "AssetsLibrary" -framework "CoreFoundation" -framework "CoreGraphics" -framework "CoreImage" -framework "CoreMedia" -framework "CoreVideo" -framework "MediaPipeTasksCommon" -framework "MediaPipeTasksVision" -framework "QuartzCore"
 OTHER_LDFLAGS[sdk=iphoneos*] = $(inherited) -force_load "$(PODS_ROOT)/MediaPipeTasksCommon/frameworks/graph_libraries/libMediaPipeTasksCommon_device_graph.a"
 OTHER_LDFLAGS[sdk=iphonesimulator*] = $(inherited) -force_load "${PODS_ROOT}/MediaPipeTasksCommon/frameworks/graph_libraries/libMediaPipeTasksCommon_simulator_graph.a"
-OTHER_MODULE_VERIFIER_FLAGS = $(inherited) "-F${PODS_CONFIGURATION_BUILD_DIR}/MediaPipeTasksCommon" "-F${PODS_CONFIGURATION_BUILD_DIR}/MediaPipeTasksVision"
+OTHER_MODULE_VERIFIER_FLAGS = $(inherited) "-F${PODS_CONFIGURATION_BUILD_DIR}/MediaPipeTasksCommon" "-F${PODS_CONFIGURATION_BUILD_DIR}/MediaPipeTasksVision" "-F${PODS_CONFIGURATION_BUILD_DIR}/Starscream"
+OTHER_SWIFT_FLAGS = $(inherited) -D COCOAPODS -Xcc -fmodule-map-file="${PODS_CONFIGURATION_BUILD_DIR}/Starscream/Starscream.modulemap"
 PODS_BUILD_DIR = ${BUILD_DIR}
 PODS_CONFIGURATION_BUILD_DIR = ${PODS_BUILD_DIR}/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)
 PODS_PODFILE_DIR_PATH = ${SRCROOT}/.
 PODS_ROOT = ${SRCROOT}/Pods
 PODS_XCFRAMEWORKS_BUILD_DIR = $(PODS_CONFIGURATION_BUILD_DIR)/XCFrameworkIntermediates
+SWIFT_INCLUDE_PATHS = $(inherited) "${PODS_CONFIGURATION_BUILD_DIR}/Starscream"
 USE_RECURSIVE_SCRIPT_INPUTS_IN_SCRIPT_PHASES = YES

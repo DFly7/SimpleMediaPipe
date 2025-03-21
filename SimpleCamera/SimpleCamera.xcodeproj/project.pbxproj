@@ -7,19 +7,32 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		DCA7E508BBBE19A2AC055327 /* libPods-SimpleCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DD0FADF544C309030C124E2 /* libPods-SimpleCamera.a */; };
+		C738EF6787A74C437BE1538E /* libPods-SimpleCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 247C7718157F21FB8EEDF61D /* libPods-SimpleCamera.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0D53F26D2C75B6414C811452 /* Pods-SimpleCamera.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SimpleCamera.release.xcconfig"; path = "Target Support Files/Pods-SimpleCamera/Pods-SimpleCamera.release.xcconfig"; sourceTree = "<group>"; };
-		1DD0FADF544C309030C124E2 /* libPods-SimpleCamera.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-SimpleCamera.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		8A2F673B4D753DB5B983A1F9 /* Pods-SimpleCamera.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SimpleCamera.debug.xcconfig"; path = "Target Support Files/Pods-SimpleCamera/Pods-SimpleCamera.debug.xcconfig"; sourceTree = "<group>"; };
+		247C7718157F21FB8EEDF61D /* libPods-SimpleCamera.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-SimpleCamera.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4D6280136734D1BECB724226 /* Pods-SimpleCamera.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SimpleCamera.release.xcconfig"; path = "Target Support Files/Pods-SimpleCamera/Pods-SimpleCamera.release.xcconfig"; sourceTree = "<group>"; };
 		90FEA4632D8C5835009D7020 /* SimpleCamera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SimpleCamera.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE5960FD3CE996A68FC9EFD6 /* Pods-SimpleCamera.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SimpleCamera.debug.xcconfig"; path = "Target Support Files/Pods-SimpleCamera/Pods-SimpleCamera.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		90FEA4AA2D8C7F21009D7020 /* Exceptions for "SimpleCamera" folder in "SimpleCamera" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 90FEA4622D8C5835009D7020 /* SimpleCamera */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		90FEA4652D8C5835009D7020 /* SimpleCamera */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				90FEA4AA2D8C7F21009D7020 /* Exceptions for "SimpleCamera" folder in "SimpleCamera" target */,
+			);
 			path = SimpleCamera;
 			sourceTree = "<group>";
 		};
@@ -30,7 +43,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				DCA7E508BBBE19A2AC055327 /* libPods-SimpleCamera.a in Frameworks */,
+				C738EF6787A74C437BE1538E /* libPods-SimpleCamera.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -40,8 +53,8 @@
 		1319732102CEB6DE9F68556A /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				8A2F673B4D753DB5B983A1F9 /* Pods-SimpleCamera.debug.xcconfig */,
-				0D53F26D2C75B6414C811452 /* Pods-SimpleCamera.release.xcconfig */,
+				AE5960FD3CE996A68FC9EFD6 /* Pods-SimpleCamera.debug.xcconfig */,
+				4D6280136734D1BECB724226 /* Pods-SimpleCamera.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -52,7 +65,7 @@
 				90FEA4652D8C5835009D7020 /* SimpleCamera */,
 				90FEA4642D8C5835009D7020 /* Products */,
 				1319732102CEB6DE9F68556A /* Pods */,
-				A30A312D944E9EA3A583BCF4 /* Frameworks */,
+				9314FAC8997F0BE9F03EF37F /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -64,10 +77,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		A30A312D944E9EA3A583BCF4 /* Frameworks */ = {
+		9314FAC8997F0BE9F03EF37F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				1DD0FADF544C309030C124E2 /* libPods-SimpleCamera.a */,
+				247C7718157F21FB8EEDF61D /* libPods-SimpleCamera.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -79,7 +92,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 90FEA4712D8C5836009D7020 /* Build configuration list for PBXNativeTarget "SimpleCamera" */;
 			buildPhases = (
-				1A81A03F595BDE126D8578B6 /* [CP] Check Pods Manifest.lock */,
+				CE97F8F6680B9616F338B568 /* [CP] Check Pods Manifest.lock */,
 				90FEA45F2D8C5835009D7020 /* Sources */,
 				90FEA4602D8C5835009D7020 /* Frameworks */,
 				90FEA4612D8C5835009D7020 /* Resources */,
@@ -141,7 +154,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		1A81A03F595BDE126D8578B6 /* [CP] Check Pods Manifest.lock */ = {
+		CE97F8F6680B9616F338B568 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -297,7 +310,7 @@
 		};
 		90FEA4722D8C5836009D7020 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8A2F673B4D753DB5B983A1F9 /* Pods-SimpleCamera.debug.xcconfig */;
+			baseConfigurationReference = AE5960FD3CE996A68FC9EFD6 /* Pods-SimpleCamera.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -307,12 +320,14 @@
 				DEVELOPMENT_TEAM = V8S6S975CD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SimpleCamera/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs camera access to show camera preview";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -328,7 +343,7 @@
 		};
 		90FEA4732D8C5836009D7020 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0D53F26D2C75B6414C811452 /* Pods-SimpleCamera.release.xcconfig */;
+			baseConfigurationReference = 4D6280136734D1BECB724226 /* Pods-SimpleCamera.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -338,12 +353,14 @@
 				DEVELOPMENT_TEAM = V8S6S975CD;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SimpleCamera/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "This app needs camera access to show camera preview";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

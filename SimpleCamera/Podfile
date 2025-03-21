@@ -1,5 +1,8 @@
-platform :ios, '13.0'
+platform :ios, '15.0'
 
 target 'SimpleCamera' do
   pod 'MediaPipeTasksVision'
+
+  # Add Socket.IO
+  pod 'Starscream', '~> 4.0.0'  # Match the version that Socket.IO requires
 end
