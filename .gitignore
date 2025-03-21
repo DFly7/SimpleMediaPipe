@@ -6,6 +6,7 @@ Pods/
 *.xcuserstate
 *.xcodeproj/project.xcworkspace/
 *.xcodeproj/xcuserdata/
+Pods/
 
 # Ignore MediaPipe-related large files
 SimpleCamera/Pods/MediaPipeTasksCommon/
