@@ -4,43 +4,170 @@ import MediaPipeTasksVision
 import UIKit
 import Starscream
 
-// Hello
-// MARK: - Content View
+// MARK: - Main App View
 struct ContentView: View {
+    @State private var isShowingHomeScreen = true
+    
+    var body: some View {
+        if isShowingHomeScreen {
+            HomeScreenView(onStartSwinging: {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    isShowingHomeScreen = false
+                }
+            })
+        } else {
+            SwingAnalysisView(onBackPressed: {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    isShowingHomeScreen = true
+                }
+            })
+        }
+    }
+}
+
+// MARK: - Home Screen View
+struct HomeScreenView: View {
+    var onStartSwinging: () -> Void
+    @State private var isButtonAnimating = false
+    
+    var body: some View {
+        ZStack {
+            // Background gradient
+            LinearGradient(
+                gradient: Gradient(colors: [Color(#colorLiteral(red: 0.1019607857, green: 0.2784313858, blue: 0.400000006, alpha: 1)), Color(#colorLiteral(red: 0.09019608051, green: 0.1921568662, blue: 0.2549019754, alpha: 1))]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .edgesIgnoringSafeArea(.all)
+            
+            // Animated background elements (golf ball effect)
+            ForEach(0..<20) { index in
+                Circle()
+                    .fill(Color.white.opacity(0.05))
+                    .frame(width: CGFloat.random(in: 20...100))
+                    .position(
+                        x: CGFloat.random(in: 0...UIScreen.main.bounds.width),
+                        y: CGFloat.random(in: 0...UIScreen.main.bounds.height)
+                    )
+            }
+            
+            VStack(spacing: 30) {
+                Spacer()
+                
+                // App title
+                VStack(spacing: 12) {
+                    Text("SWING")
+                        .font(.system(size: 60, weight: .heavy))
+                        .foregroundColor(.white)
+                    
+                    Text("ANALYSER")
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(Color(#colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1)))
+                }
+                .shadow(color: Color.black.opacity(0.3), radius: 10, x: 0, y: 5)
+                
+                Spacer()
+                
+                // Subtitle
+                Text("Improve your swing with\nreal-time pose analysis")
+                    .multilineTextAlignment(.center)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(.white.opacity(0.8))
+                    .padding(.horizontal, 20)
+                
+                Spacer()
+                
+                // Start button
+                Button(action: onStartSwinging) {
+                    Text("START SWINGING")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.vertical, 20)
+                        .padding(.horizontal, 40)
+                        .background(
+                            RoundedRectangle(cornerRadius: 30)
+                                .fill(Color(#colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1)))
+                                .shadow(color: Color(#colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1)).opacity(0.5), radius: 8, x: 0, y: 4)
+                        )
+                        .scaleEffect(isButtonAnimating ? 1.05 : 1.0)
+                }
+                .onAppear {
+                    // Subtle button animation to draw attention
+                    withAnimation(Animation.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                        isButtonAnimating = true
+                    }
+                }
+                
+                Spacer()
+                
+                // Footer text
+                Text("Powered by MediaPipe & AI")
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(.white.opacity(0.6))
+                    .padding(.bottom, 20)
+            }
+            .padding()
+        }
+    }
+}
+
+// MARK: - Swing Analysis View (the original camera view)
+struct SwingAnalysisView: View {
     @StateObject private var cameraManager = CameraManager()
     @StateObject private var socketManager = WebSocketManager()
     @State private var isCameraActive = false
     @State private var showPermissionAlert = false
     @State private var lastScore: Int = 0
+    var onBackPressed: () -> Void
     
     var body: some View {
         ZStack {
             Color.black.edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 12) {
-                // Top status bar with connection and score
-                VStack(spacing: 10) {
-                    // Connection status and reconnect button in nice card
-                    HStack {
-                        // Connection status indicator
-                        HStack(spacing: 8) {
-                            Circle()
-                                .fill(socketManager.isConnected ? Color.green : Color.red)
-                                .frame(width: 12, height: 12)
-                                .shadow(color: socketManager.isConnected ? Color.green.opacity(0.6) : Color.red.opacity(0.6), radius: 4)
-                            
-                            Text(socketManager.isConnected ? "Connected" : "Not Connected")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(.white)
+                // Top bar with back button
+                HStack {
+                    // Back button
+                    Button(action: onBackPressed) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .bold))
+                            Text("Home")
+                                .font(.system(size: 16, weight: .medium))
                         }
+                        .foregroundColor(.white)
                         .padding(.vertical, 8)
                         .padding(.horizontal, 12)
                         .background(Color.black.opacity(0.5))
                         .cornerRadius(20)
+                    }
+                    
+                    Spacer()
+                    
+                    // Connection status indicator
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(socketManager.isConnected ? Color.green : Color.red)
+                            .frame(width: 12, height: 12)
+                            .shadow(color: socketManager.isConnected ? Color.green.opacity(0.6) : Color.red.opacity(0.6), radius: 4)
                         
+                        Text(socketManager.isConnected ? "Connected" : "Not Connected")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 12)
+                    .background(Color.black.opacity(0.5))
+                    .cornerRadius(20)
+                }
+                .padding(.horizontal)
+                
+                // Top status bar with connection and score
+                VStack(spacing: 10) {
+                    // Reconnect button
+                    HStack {
                         Spacer()
                         
-                        // Reconnect button
                         Button(action: {
                             socketManager.reconnect()
                         }) {
@@ -221,6 +348,17 @@ struct ContentView: View {
             isCameraActive = false
         }
     }
+}
+
+// MARK: - Preview Provider
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView()
+    }
+}
+
+#Preview {
+    ContentView()
 }
 
 // Define a custom landmark structure to simplify working with landmarks
@@ -761,17 +899,6 @@ struct CameraPreviewView: UIViewRepresentable {
             }
         }
     }
-}
-
-// MARK: - Preview Provider
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
-}
-
-#Preview {
-    ContentView()
 }
 
 class WebSocketManager: ObservableObject {
