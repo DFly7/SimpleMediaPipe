@@ -118,168 +118,312 @@ struct SwingAnalysisView: View {
     @State private var isCameraActive = false
     @State private var showPermissionAlert = false
     @State private var lastScore: Int = 0
+    @State private var showControls = true
     var onBackPressed: () -> Void
     
     var body: some View {
-        ZStack {
-            Color.black.edgesIgnoringSafeArea(.all)
-            
-            VStack(spacing: 12) {
-                // Top bar with back button
-                HStack {
-                    // Back button
-                    Button(action: onBackPressed) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 16, weight: .bold))
-                            Text("Home")
-                                .font(.system(size: 16, weight: .medium))
-                        }
-                        .foregroundColor(.white)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                        .background(Color.black.opacity(0.5))
-                        .cornerRadius(20)
-                    }
-                    
-                    Spacer()
-                    
-                    // Connection status indicator
-                    HStack(spacing: 8) {
-                        Circle()
-                            .fill(socketManager.isConnected ? Color.green : Color.red)
-                            .frame(width: 12, height: 12)
-                            .shadow(color: socketManager.isConnected ? Color.green.opacity(0.6) : Color.red.opacity(0.6), radius: 4)
-                        
-                        Text(socketManager.isConnected ? "Connected" : "Not Connected")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.white)
-                    }
-                    .padding(.vertical, 8)
-                    .padding(.horizontal, 12)
-                    .background(Color.black.opacity(0.5))
-                    .cornerRadius(20)
-                }
-                .padding(.horizontal)
+        GeometryReader { geometry in
+            ZStack {
+                // Professional dark background
+                Color(#colorLiteral(red: 0.05882352941, green: 0.09019607843, blue: 0.1098039216, alpha: 1)).edgesIgnoringSafeArea(.all)
                 
-                // Top status bar with connection and score
-                VStack(spacing: 10) {
-                    // Reconnect button
-                    HStack {
-                        Spacer()
-                        
-                        Button(action: {
-                            socketManager.reconnect()
-                        }) {
-                            Text("Reconnect")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
-                                .background(Color.blue)
-                                .cornerRadius(16)
-                                .shadow(color: Color.blue.opacity(0.4), radius: 3)
+                VStack(spacing: 0) {
+                    // Camera view (takes most of the screen)
+                    ZStack {
+                        // Camera preview (only shown when active)
+                        if isCameraActive {
+                            CameraPreviewView(session: cameraManager.session)
+                                .overlay(
+                                    // Pose overlay view
+                                    PoseOverlayView(poseResults: cameraManager.poseResults)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        } else {
+                            // Placeholder when camera is off
+                            ZStack {
+                                Color(#colorLiteral(red: 0.1298420429, green: 0.1298461258, blue: 0.1298439503, alpha: 1))
+                                VStack(spacing: 20) {
+                                    Image(systemName: "camera.fill")
+                                        .font(.system(size: 40))
+                                        .foregroundColor(.white.opacity(0.6))
+                                    
+                                    Text("Camera Off")
+                                        .font(.system(size: 22, weight: .medium))
+                                        .foregroundColor(.white.opacity(0.8))
+                                        
+                                    Text("Tap 'Start Recording' to begin")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(.white.opacity(0.6))
+                                }
+                            }
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
-                    }
-                    .padding(.horizontal)
-                    
-                    // Score display in prominent card
-                    if socketManager.lastScore > 0 {
-                        HStack {
-                            Text("SCORE")
-                                .font(.system(size: 14, weight: .heavy))
-                                .foregroundColor(.white.opacity(0.8))
+                        
+                        // Top status bar overlay
+                        VStack {
+                            // Semi-transparent top status bar
+                            HStack {
+                                // Back button
+                                Button(action: onBackPressed) {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "chevron.left")
+                                            .font(.system(size: 14, weight: .bold))
+                                        Text("Home")
+                                            .font(.system(size: 14, weight: .medium))
+                                    }
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 8)
+                                    .background(Color.black.opacity(0.6))
+                                    .cornerRadius(20)
+                                }
+                                
+                                Spacer()
+                                
+                                // Connection status with subtle background
+                                if socketManager.isConnected {
+                                    HStack(spacing: 6) {
+                                        Circle()
+                                            .fill(Color.green)
+                                            .frame(width: 8, height: 8)
+                                        Text("Connected")
+                                            .font(.system(size: 12, weight: .medium))
+                                    }
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .background(Color.black.opacity(0.6))
+                                    .cornerRadius(16)
+                                } else {
+                                    HStack(spacing: 6) {
+                                        Circle()
+                                            .fill(Color.red)
+                                            .frame(width: 8, height: 8)
+                                        Text("Not Connected")
+                                            .font(.system(size: 12, weight: .medium))
+                                    }
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .background(Color.black.opacity(0.6))
+                                    .cornerRadius(16)
+                                }
+                            }
+                            .padding(12)
                             
                             Spacer()
                             
-                            Text("\(socketManager.lastScore)")
-                                .font(.system(size: 32, weight: .bold))
-                                .foregroundColor(scoreColor(for: socketManager.lastScore))
-                                .shadow(color: scoreColor(for: socketManager.lastScore).opacity(0.6), radius: 3)
+                            // Score display (if available)
+                            if socketManager.lastScore > 0 {
+                                VStack(spacing: 0) {
+                                    // Score header
+                                    Text("SWING SCORE")
+                                        .font(.system(size: 12, weight: .heavy))
+                                        .tracking(1.5)
+                                        .foregroundColor(.white.opacity(0.9))
+                                    
+                                    // Score value
+                                    Text("\(socketManager.lastScore)")
+                                        .font(.system(size: 48, weight: .heavy))
+                                        .foregroundColor(scoreColor(for: socketManager.lastScore))
+                                    
+                                    // Score description
+                                    Text(scoreDescription(for: socketManager.lastScore))
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(.white.opacity(0.8))
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal, 10)
+                                }
+                                .padding(.vertical, 14)
+                                .padding(.horizontal, 20)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.black.opacity(0.7))
+                                        .shadow(color: Color.black.opacity(0.5), radius: 10, x: 0, y: 5)
+                                )
+                                .padding(.bottom, 20)
+                            }
+                            
+                            // Show server feedback in a toast style (if available)
+                            if !socketManager.lastFeedback.isEmpty && socketManager.lastFeedback != "Sent stop notification to server" {
+                                Text(socketManager.lastFeedback)
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(.white)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 16)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(Color.black.opacity(0.7))
+                                    )
+                                    .padding(.bottom, 10)
+                            }
+                            
+                            // Recording indicator when active
+                            if isCameraActive {
+                                HStack(spacing: 10) {
+                                    Circle()
+                                        .fill(Color.red)
+                                        .frame(width: 12, height: 12)
+                                        .opacity(sin(Date().timeIntervalSince1970 * 2) > 0 ? 1 : 0.3) // Blinking effect
+                                    
+                                    Text("RECORDING")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 14)
+                                .background(Color.black.opacity(0.7))
+                                .cornerRadius(20)
+                                .padding(.bottom, 20)
+                            }
                         }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 20)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color(UIColor.systemGray6).opacity(0.15))
-                                .shadow(color: Color.black.opacity(0.3), radius: 5)
-                        )
-                        .padding(.horizontal)
+                        .padding(.top, geometry.safeAreaInsets.top)
                     }
+                    .frame(height: geometry.size.height * 0.75)
                     
-                    // Feedback message in subtle card
-                    if !socketManager.lastFeedback.isEmpty {
-                        Text(socketManager.lastFeedback)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(.white.opacity(0.9))
-                            .padding(12)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(UIColor.systemGray6).opacity(0.1))
-                            )
-                            .padding(.horizontal)
+                    // Bottom control panel
+                    ZStack {
+                        // Semi-transparent background
+                        Color(#colorLiteral(red: 0.09803921569, green: 0.1294117647, blue: 0.1490196078, alpha: 1))
+                            .edgesIgnoringSafeArea(.bottom)
+                        
+                        VStack(spacing: 20) {
+                            // Tools and options
+                            HStack(spacing: 25) {
+                                // Reconnect button
+                                VStack(spacing: 6) {
+                                    Button(action: {
+                                        socketManager.reconnect()
+                                    }) {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.blue.opacity(0.2))
+                                                .frame(width: 48, height: 48)
+                                            
+                                            Image(systemName: "arrow.triangle.2.circlepath")
+                                                .font(.system(size: 20))
+                                                .foregroundColor(.blue)
+                                        }
+                                    }
+                                    Text("Reconnect")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.white.opacity(0.7))
+                                }
+                                
+                                Spacer()
+                                
+                                // Primary recording control
+                                VStack(spacing: 10) {
+                                    ZStack {
+                                        // Outer ring
+                                        Circle()
+                                            .stroke(
+                                                isCameraActive ? Color.red : Color.green,
+                                                lineWidth: 4
+                                            )
+                                            .frame(width: 74, height: 74)
+                                        
+                                        // Inner button
+                                        Button(action: isCameraActive ? stopCamera : startCamera) {
+                                            Circle()
+                                                .fill(isCameraActive ? Color.red : Color.green)
+                                                .frame(width: 60, height: 60)
+                                                .overlay(
+                                                    ZStack {
+                                                        if isCameraActive {
+                                                            RoundedRectangle(cornerRadius: 4)
+                                                                .fill(Color.white)
+                                                                .frame(width: 20, height: 20)
+                                                        } else {
+                                                            Circle()
+                                                                .stroke(Color.white, lineWidth: 2)
+                                                                .frame(width: 22, height: 22)
+                                                        }
+                                                    }
+                                                )
+                                        }
+                                    }
+                                    Text(isCameraActive ? "Stop" : "Start Recording")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.white.opacity(0.9))
+                                }
+                                
+                                Spacer()
+                                
+                                // Toggle controls visibility button
+                                VStack(spacing: 6) {
+                                    Button(action: {
+                                        withAnimation(.spring()) {
+                                            showControls.toggle()
+                                        }
+                                    }) {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color(white: 0.3, opacity: 0.2))
+                                                .frame(width: 48, height: 48)
+                                            
+                                            Image(systemName: "slider.horizontal.3")
+                                                .font(.system(size: 20))
+                                                .foregroundColor(.white)
+                                        }
+                                    }
+                                    Text("Controls")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.white.opacity(0.7))
+                                }
+                            }
+                            .padding(.horizontal, 30)
+                            .padding(.top, 20)
+                            
+                            // Session info
+                            if showControls {
+                                VStack(spacing: 14) {
+                                    Divider()
+                                        .background(Color.white.opacity(0.2))
+                                        .padding(.horizontal, 40)
+                                    
+                                    HStack(spacing: 20) {
+                                        // Socket status
+                                        VStack(alignment: .leading, spacing: 6) {
+                                            Text("SERVER STATUS")
+                                                .font(.system(size: 10, weight: .bold))
+                                                .foregroundColor(.white.opacity(0.5))
+                                            
+                                            HStack(spacing: 6) {
+                                                Circle()
+                                                    .fill(socketManager.isConnected ? Color.green : Color.red)
+                                                    .frame(width: 8, height: 8)
+                                                
+                                                Text(socketManager.isConnected ? "Connected" : "Disconnected")
+                                                    .font(.system(size: 14, weight: .medium))
+                                                    .foregroundColor(.white.opacity(0.8))
+                                            }
+                                        }
+                                        
+                                        Spacer()
+                                        
+                                        // Session info
+                                        VStack(alignment: .trailing, spacing: 6) {
+                                            Text("IP ADDRESS")
+                                                .font(.system(size: 10, weight: .bold))
+                                                .foregroundColor(.white.opacity(0.5))
+                                            
+                                            Text("192.168.7.92:5001")
+                                                .font(.system(size: 14, weight: .medium))
+                                                .foregroundColor(.white.opacity(0.8))
+                                        }
+                                    }
+                                    .padding(.horizontal, 30)
+                                    .padding(.bottom, 20)
+                                }
+                            }
+                        }
                     }
+                    .frame(height: geometry.size.height * 0.25)
                 }
-                
-                // Camera preview (only shown when active)
-                if isCameraActive {
-                    CameraPreviewView(session: cameraManager.session)
-                        .cornerRadius(16)
-                        .padding(.horizontal)
-                        .transition(.opacity)
-                        .overlay(
-                            // Pose overlay view
-                            PoseOverlayView(poseResults: cameraManager.poseResults)
-                                .padding()
-                        )
-                } else {
-                    // Placeholder when camera is off
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .cornerRadius(16)
-                        .padding(.horizontal)
-                        .overlay(
-                            Text("Camera Off")
-                                .foregroundColor(.white)
-                                .font(.title)
-                        )
-                        .transition(.opacity)
-                }
-                
-                Spacer()
-                
-                // Control buttons
-                HStack(spacing: 40) {
-                    Button(action: startCamera) {
-                        Text("Start Camera")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(width: 150)
-                            .background(Color.green)
-                            .cornerRadius(20)
-                            .shadow(color: Color.green.opacity(0.4), radius: 5)
-                            .opacity(isCameraActive ? 0.5 : 1.0)
-                    }
-                    .disabled(isCameraActive)
-                    
-                    Button(action: stopCamera) {
-                        Text("Stop Camera")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(width: 150)
-                            .background(Color.red)
-                            .cornerRadius(20)
-                            .shadow(color: Color.red.opacity(0.4), radius: 5)
-                            .opacity(isCameraActive ? 1.0 : 0.5)
-                    }
-                    .disabled(!isCameraActive)
-                }
-                .padding(.bottom, 30)
             }
         }
+        .statusBar(hidden: true)
         .onAppear {
             setupCamera()
             // Set up the score observation
@@ -301,11 +445,23 @@ struct SwingAnalysisView: View {
     private func scoreColor(for score: Int) -> Color {
         switch score {
         case 0...30:
-            return .red
+            return Color(#colorLiteral(red: 0.9254902005, green: 0.2352941185, blue: 0.1019607857, alpha: 1))
         case 31...70:
-            return .yellow
+            return Color(#colorLiteral(red: 0.9529411793, green: 0.6862745285, blue: 0.1333333403, alpha: 1))
         default:
-            return .green
+            return Color(#colorLiteral(red: 0.4666666687, green: 0.7647058964, blue: 0.2666666806, alpha: 1))
+        }
+    }
+    
+    // Function to get score description
+    private func scoreDescription(for score: Int) -> String {
+        switch score {
+        case 0...30:
+            return "Needs improvement"
+        case 31...70:
+            return "Good technique"
+        default:
+            return "Excellent form!"
         }
     }
     
