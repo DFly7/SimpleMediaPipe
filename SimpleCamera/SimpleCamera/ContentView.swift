@@ -12,70 +12,94 @@ struct ContentView: View {
     @State private var isCameraActive = false
     @State private var showPermissionAlert = false
     @State private var lastScore: Int = 0
-    @State private var showScoreIndicator = false
     
     var body: some View {
         ZStack {
             Color.black.edgesIgnoringSafeArea(.all)
             
-            VStack {
-                // Connection status indicator
-                HStack {
-                    Circle()
-                        .fill(socketManager.isConnected ? Color.green : Color.red)
-                        .frame(width: 10, height: 10)
-                    Text(socketManager.isConnected ? "Connected to Server" : "Not Connected")
-                        .font(.caption)
-                        .foregroundColor(.white)
-                    Spacer()
-                    
-                    // Reconnect button
-                    Button(action: {
-                        socketManager.reconnect()
-                    }) {
-                        Text("Reconnect")
-                            .font(.caption)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(Color.blue)
-                            .cornerRadius(8)
-                    }
-                }
-                .padding(.horizontal)
-                
-                // Score display
-                if showScoreIndicator {
+            VStack(spacing: 12) {
+                // Top status bar with connection and score
+                VStack(spacing: 10) {
+                    // Connection status and reconnect button in nice card
                     HStack {
-                        Text("Score: \(socketManager.lastScore)")
-                            .font(.headline)
-                            .foregroundColor(scoreColor(for: socketManager.lastScore))
-                            .padding(.vertical, 5)
+                        // Connection status indicator
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(socketManager.isConnected ? Color.green : Color.red)
+                                .frame(width: 12, height: 12)
+                                .shadow(color: socketManager.isConnected ? Color.green.opacity(0.6) : Color.red.opacity(0.6), radius: 4)
+                            
+                            Text(socketManager.isConnected ? "Connected" : "Not Connected")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.white)
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
+                        .background(Color.black.opacity(0.5))
+                        .cornerRadius(20)
+                        
                         Spacer()
-                    }
-                    .padding(.horizontal)
-                    .onAppear {
-                        // Hide score after 3 seconds
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                            withAnimation {
-                                showScoreIndicator = false
-                            }
+                        
+                        // Reconnect button
+                        Button(action: {
+                            socketManager.reconnect()
+                        }) {
+                            Text("Reconnect")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
+                                .background(Color.blue)
+                                .cornerRadius(16)
+                                .shadow(color: Color.blue.opacity(0.4), radius: 3)
                         }
                     }
-                }
-                
-                // Feedback from server
-                if !socketManager.lastFeedback.isEmpty {
-                    Text("Feedback: \(socketManager.lastFeedback)")
-                        .foregroundColor(.white)
+                    .padding(.horizontal)
+                    
+                    // Score display in prominent card
+                    if socketManager.lastScore > 0 {
+                        HStack {
+                            Text("SCORE")
+                                .font(.system(size: 14, weight: .heavy))
+                                .foregroundColor(.white.opacity(0.8))
+                            
+                            Spacer()
+                            
+                            Text("\(socketManager.lastScore)")
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundColor(scoreColor(for: socketManager.lastScore))
+                                .shadow(color: scoreColor(for: socketManager.lastScore).opacity(0.6), radius: 3)
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color(UIColor.systemGray6).opacity(0.15))
+                                .shadow(color: Color.black.opacity(0.3), radius: 5)
+                        )
                         .padding(.horizontal)
+                    }
+                    
+                    // Feedback message in subtle card
+                    if !socketManager.lastFeedback.isEmpty {
+                        Text(socketManager.lastFeedback)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white.opacity(0.9))
+                            .padding(12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(UIColor.systemGray6).opacity(0.1))
+                            )
+                            .padding(.horizontal)
+                    }
                 }
                 
                 // Camera preview (only shown when active)
                 if isCameraActive {
                     CameraPreviewView(session: cameraManager.session)
-                        .cornerRadius(12)
-                        .padding()
+                        .cornerRadius(16)
+                        .padding(.horizontal)
                         .transition(.opacity)
                         .overlay(
                             // Pose overlay view
@@ -86,8 +110,8 @@ struct ContentView: View {
                     // Placeholder when camera is off
                     Rectangle()
                         .fill(Color.gray.opacity(0.3))
-                        .cornerRadius(12)
-                        .padding()
+                        .cornerRadius(16)
+                        .padding(.horizontal)
                         .overlay(
                             Text("Camera Off")
                                 .foregroundColor(.white)
@@ -107,7 +131,8 @@ struct ContentView: View {
                             .padding()
                             .frame(width: 150)
                             .background(Color.green)
-                            .cornerRadius(10)
+                            .cornerRadius(20)
+                            .shadow(color: Color.green.opacity(0.4), radius: 5)
                             .opacity(isCameraActive ? 0.5 : 1.0)
                     }
                     .disabled(isCameraActive)
@@ -119,7 +144,8 @@ struct ContentView: View {
                             .padding()
                             .frame(width: 150)
                             .background(Color.red)
-                            .cornerRadius(10)
+                            .cornerRadius(20)
+                            .shadow(color: Color.red.opacity(0.4), radius: 5)
                             .opacity(isCameraActive ? 1.0 : 0.5)
                     }
                     .disabled(!isCameraActive)
@@ -160,9 +186,8 @@ struct ContentView: View {
     private func setupScoreObserver() {
         // Observe when score changes
         socketManager.onScoreReceived = { score in
-            withAnimation {
+            withAnimation(.spring()) {
                 self.lastScore = score
-                self.showScoreIndicator = true
             }
         }
     }
