@@ -578,6 +578,10 @@ class CameraManager: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleB
     // Add reference to SocketManager
     private var socketManager: WebSocketManager?
     
+    // Add properties to handle pose persistence between frames
+    private var lastValidPoseTimestamp: TimeInterval = 0
+    private let posePersistenceDuration: TimeInterval = 0.3 // Hold pose for 300ms before clearing
+    
     func setSocketManager(_ manager: WebSocketManager) {
         self.socketManager = manager
     }
@@ -683,21 +687,28 @@ class CameraManager: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleB
                 // Use poseLandmarks for visualization if they exist
                 if let validPoseLandmarks = poseLandmarks, !validPoseLandmarks.isEmpty {
                     self.poseResults = validPoseLandmarks
+                    self.lastValidPoseTimestamp = Date().timeIntervalSince1970
                 } else {
-                    // Clear the pose data when no valid landmarks are detected
-                    self.poseResults = []
+                    // Only clear pose data if enough time has passed since the last valid pose
+                    let currentTime = Date().timeIntervalSince1970
+                    if currentTime - self.lastValidPoseTimestamp > self.posePersistenceDuration {
+                        self.poseResults = []
+                    }
+                    // Otherwise keep the last valid pose to prevent flickering
                 }
                 
                 // Only send world landmarks if available
                 if let validWorldLandmarks = worldLandmarks, !validWorldLandmarks.isEmpty {
                     self.socketManager?.sendWorldKeypoints(landmarks: validWorldLandmarks)
                 }
-                // No fallback to regular landmarks anymore
             }
         } else {
-            // Explicitly clear the pose data when pose detection returns nil
+            // Same debounce logic for nil detection results
             DispatchQueue.main.async {
-                self.poseResults = []
+                let currentTime = Date().timeIntervalSince1970
+                if currentTime - self.lastValidPoseTimestamp > self.posePersistenceDuration {
+                    self.poseResults = []
+                }
             }
         }
     }
@@ -713,6 +724,11 @@ class PoseDetector: NSObject, PoseLandmarkerLiveStreamDelegate {
     // Better timestamp tracking with a larger increment
     private var lastProcessedTimestamp: Int = 0
     private let timestampIncrement = 100 // Use a larger increment to avoid small differences
+    
+    // Add debounce properties to smooth out detection
+    private var lastValidResultTime: TimeInterval = 0
+    private var cachedLandmarks: [PoseLandmark]?
+    private var cachedWorldLandmarks: [PoseLandmark]?
     
     // Add this property to suppress MediaPipe output
     private var suppressWarnings: Bool = true
@@ -856,9 +872,22 @@ class PoseDetector: NSObject, PoseLandmarkerLiveStreamDelegate {
                     }
                 }
                 
+                // Cache the valid landmarks with timestamp
+                self.cachedLandmarks = customLandmarks
+                self.cachedWorldLandmarks = customWorldLandmarks
+                self.lastValidResultTime = Date().timeIntervalSince1970
+                
                 return (customLandmarks, customWorldLandmarks)
             } else {
-                // Return empty results if no valid data to ensure overlay is cleared
+                // Return cached landmarks if we have them and they're recent
+                let currentTime = Date().timeIntervalSince1970
+                let cacheValidityDuration: TimeInterval = 0.5 // Landmarks valid for 500ms
+                
+                if let cached = self.cachedLandmarks, currentTime - self.lastValidResultTime < cacheValidityDuration {
+                    return (cached, self.cachedWorldLandmarks)
+                }
+                
+                // If cache expired or no cache, return empty results
                 return ([], [])
             }
         } catch {
