@@ -681,8 +681,11 @@ class CameraManager: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleB
         if let (poseLandmarks, worldLandmarks) = poseDetector?.detectPoseInVideo(on: pixelBuffer, timestamp: timestamp) {
             DispatchQueue.main.async {
                 // Use poseLandmarks for visualization if they exist
-                if let validPoseLandmarks = poseLandmarks {
+                if let validPoseLandmarks = poseLandmarks, !validPoseLandmarks.isEmpty {
                     self.poseResults = validPoseLandmarks
+                } else {
+                    // Clear the pose data when no valid landmarks are detected
+                    self.poseResults = []
                 }
                 
                 // Only send world landmarks if available
@@ -690,6 +693,11 @@ class CameraManager: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleB
                     self.socketManager?.sendWorldKeypoints(landmarks: validWorldLandmarks)
                 }
                 // No fallback to regular landmarks anymore
+            }
+        } else {
+            // Explicitly clear the pose data when pose detection returns nil
+            DispatchQueue.main.async {
+                self.poseResults = []
             }
         }
     }
@@ -742,10 +750,10 @@ class PoseDetector: NSObject, PoseLandmarkerLiveStreamDelegate {
         var modelPath: String?
         
         // Try different approaches to find the model file
-        modelPath = Bundle.main.path(forResource: "pose_landmarker_full", ofType: "task", inDirectory: "Models")
+        modelPath = Bundle.main.path(forResource: "pose_landmarker_heavy", ofType: "task", inDirectory: "Models")
         
         if modelPath == nil {
-            modelPath = Bundle.main.path(forResource: "pose_landmarker_full", ofType: "task")
+            modelPath = Bundle.main.path(forResource: "pose_landmarker_heavy", ofType: "task")
             print("Model found at: \(modelPath ?? "nil")")
         }
         
@@ -849,6 +857,9 @@ class PoseDetector: NSObject, PoseLandmarkerLiveStreamDelegate {
                 }
                 
                 return (customLandmarks, customWorldLandmarks)
+            } else {
+                // Return empty results if no valid data to ensure overlay is cleared
+                return ([], [])
             }
         } catch {
             print("Pose detection failed: \(error)")
@@ -906,12 +917,19 @@ struct PoseOverlayView: View {
         }
     }
     
-    // Check if we have valid landmarks to draw
-    private func hasValidLandmarks() -> Bool {
-        return !poseResults.isEmpty && 
-               poseResults.count >= 33 && // MediaPipe Pose has 33 landmarks
-               // Check if at least some key landmarks have decent visibility
-               (poseResults[11].visibility > 0.5 || poseResults[12].visibility > 0.5)
+    // Check if we have valid landmarks to draw - strict version with no delay
+    private func hasValidPose() -> Bool {
+        // Check if we have enough landmarks
+        guard !poseResults.isEmpty && poseResults.count >= 33 else {
+            return false
+        }
+        
+        // Require BOTH shoulders to be visible with high confidence
+        let leftShoulderVisible = poseResults[11].visibility > 0.7
+        let rightShoulderVisible = poseResults[12].visibility > 0.7
+        
+        // Require at least both shoulders to be visible
+        return (leftShoulderVisible && rightShoulderVisible)
     }
     
     // Create a custom connection struct to handle z-ordering
@@ -957,8 +975,7 @@ struct PoseOverlayView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            // Only draw if we have valid landmarks
-            if hasValidLandmarks() {
+            if !poseResults.isEmpty && hasValidPose() {
                 ZStack {
                     // Prepare all connections with z-order information
                     let sortedConnections = prepareConnectionsWithDepth(geometry: geometry)
@@ -1016,6 +1033,9 @@ struct PoseOverlayView: View {
                         .position(landmark.position)
                     }
                 }
+            } else {
+                // Empty view when no pose is detected
+                EmptyView()
             }
         }
     }
