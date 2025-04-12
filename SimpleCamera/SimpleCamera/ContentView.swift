@@ -120,6 +120,7 @@ struct SwingAnalysisView: View {
     @State private var lastScore: Int = 0
     @State private var showControls = true
     @State private var showBottomPanel = true
+    @State private var showPoseOverlay = true
     var onBackPressed: () -> Void
     
     var body: some View {
@@ -134,8 +135,8 @@ struct SwingAnalysisView: View {
                     if isCameraActive {
                         CameraPreviewView(session: cameraManager.session)
                             .overlay(
-                                // Pose overlay view
-                                PoseOverlayView(poseResults: cameraManager.poseResults)
+                                // Pose overlay view (only show if enabled)
+                                showPoseOverlay ? PoseOverlayView(poseResults: cameraManager.poseResults) : nil
                             )
                             .edgesIgnoringSafeArea(.all)
                     } else {
@@ -403,6 +404,52 @@ struct SwingAnalysisView: View {
                                         Divider()
                                             .background(Color.white.opacity(0.2))
                                             .padding(.horizontal, 40)
+                                        
+                                        // Toggle for Pose Overlay
+                                        Button(action: {
+                                            withAnimation {
+                                                showPoseOverlay.toggle()
+                                            }
+                                        }) {
+                                            HStack {
+                                                // Text and icon for the toggle
+                                                HStack(spacing: 8) {
+                                                    Image(systemName: "figure.stand")
+                                                        .font(.system(size: 15))
+                                                        .foregroundColor(.white)
+                                                    
+                                                    Text("Pose Overlay")
+                                                        .font(.system(size: 14, weight: .medium))
+                                                        .foregroundColor(.white)
+                                                }
+                                                
+                                                Spacer()
+                                                
+                                                // Custom toggle indicator
+                                                ZStack {
+                                                    Capsule()
+                                                        .fill(showPoseOverlay ? Color.green.opacity(0.5) : Color.gray.opacity(0.5))
+                                                        .frame(width: 50, height: 26)
+                                                    
+                                                    Circle()
+                                                        .fill(showPoseOverlay ? Color.green : Color.gray)
+                                                        .frame(width: 22, height: 22)
+                                                        .offset(x: showPoseOverlay ? 12 : -12)
+                                                        .animation(.spring(), value: showPoseOverlay)
+                                                }
+                                            }
+                                            .padding(.horizontal, 30)
+                                            .padding(.vertical, 10)
+                                            .background(Color.black.opacity(0.2))
+                                            .cornerRadius(10)
+                                            .padding(.horizontal, 20)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                        
+                                        Divider()
+                                            .background(Color.white.opacity(0.2))
+                                            .padding(.horizontal, 40)
+                                            .padding(.vertical, 5)
                                         
                                         // Latest message from server
                                         if !socketManager.lastFeedback.isEmpty {
