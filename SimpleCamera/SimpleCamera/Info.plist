@@ -7,5 +7,12 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app needs access to the local network to discover and connect to the pose server.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_pose-server._tcp</string>
+		<string>_pose-server._tcp.</string>
+	</array>
 </dict>
 </plist>
