@@ -204,6 +204,28 @@ struct SwingAnalysisView: View {
                                             .foregroundColor(.white.opacity(0.7))
                                     }
                                     
+                                    // Add camera flip button
+                                    VStack(spacing: 6) {
+                                        Button(action: {
+                                            cameraManager.toggleCamera()
+                                        }) {
+                                            ZStack {
+                                                Circle()
+                                                    .fill(Color.purple.opacity(0.2))
+                                                    .frame(width: 48, height: 48)
+                                                
+                                                Image(systemName: "camera.rotate")
+                                                    .font(.system(size: 20))
+                                                    .foregroundColor(.purple)
+                                            }
+                                        }
+                                        .disabled(!isCameraActive)
+                                        .opacity(isCameraActive ? 1.0 : 0.5)
+                                        Text("Flip Camera")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.white.opacity(0.7))
+                                    }
+                                    
                                     Spacer()
                                     
                                     // Primary analysis control

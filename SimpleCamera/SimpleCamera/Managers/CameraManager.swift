@@ -10,6 +10,9 @@ class CameraManager: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleB
     @Published var poseResults: [PoseLandmark] = []
     private var currentFrameTimestamp: Int64 = 0
     
+    // Add camera position property
+    @Published var cameraPosition: AVCaptureDevice.Position = .back
+    
     // Add reference to SocketManager
     private var socketManager: WebSocketManager?
     
@@ -51,7 +54,7 @@ class CameraManager: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleB
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
             
-            guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
+            guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: self.cameraPosition),
                   let input = try? AVCaptureDeviceInput(device: camera) else {
                 return
             }
@@ -80,10 +83,56 @@ class CameraManager: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleB
                 if connection.isVideoOrientationSupported {
                     connection.videoOrientation = .portrait
                 }
-                connection.isVideoMirrored = false
+                connection.isVideoMirrored = self.cameraPosition == .front
             }
             
             self.session.commitConfiguration()
+        }
+    }
+    
+    // Add function to toggle camera
+    func toggleCamera() {
+        // Stop current session
+        if session.isRunning {
+            session.stopRunning()
+        }
+        
+        // Remove existing inputs
+        session.inputs.forEach { session.removeInput($0) }
+        
+        // Toggle camera position
+        cameraPosition = cameraPosition == .back ? .front : .back
+        
+        // Setup with new camera position
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            
+            guard let camera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: self.cameraPosition),
+                  let input = try? AVCaptureDeviceInput(device: camera) else {
+                return
+            }
+            
+            self.session.beginConfiguration()
+            
+            if self.session.canAddInput(input) {
+                self.session.addInput(input)
+            }
+            
+            // Set video orientation if needed
+            if let connection = self.videoOutput.connection(with: .video) {
+                if connection.isVideoOrientationSupported {
+                    connection.videoOrientation = .portrait
+                }
+                // Mirror the video if using front camera
+                connection.isVideoMirrored = self.cameraPosition == .front
+            }
+            
+            self.session.commitConfiguration()
+            
+            // Restart session if it was running before
+            if !self.session.isRunning {
+                self.session.startRunning()
+            }
         }
     }
     
