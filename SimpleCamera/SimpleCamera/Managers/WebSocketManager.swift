@@ -4,6 +4,18 @@ import AVFoundation
 import Network
 import ObjectiveC
 
+/**
+ * WebSocketManager is responsible for handling real-time communication with a pose-analysis server.
+ * 
+ * This class provides automatic server discovery using Bonjour/mDNS, fallback direct connections,
+ * Socket.IO protocol support, and a callback system for pose scoring. It handles the complete
+ * lifecycle of WebSocket connections including:
+ * - Service discovery using both NWBrowser and NetServiceBrowser
+ * - Automatic reconnection and fallback strategies
+ * - Socket.IO protocol handshakes and message formatting
+ * - Real-time pose landmark transmission
+ * - Score reception and audio feedback
+ */
 class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, NetServiceDelegate {
     @Published var isConnected = false
     @Published var lastFeedback = ""
@@ -26,12 +38,25 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
     // Callback for when a score is received
     var onScoreReceived: ((Int) -> Void)? = nil
     
+    /**
+     * Initializes the WebSocketManager and starts the server discovery process.
+     *
+     * This constructor initializes the audio session and begins the server discovery
+     * process immediately after initialization.
+     */
     override init() {
         super.init()
         setupAudioSession()
         startDiscovery()
     }
     
+    /**
+     * Starts the service discovery process and sets up a fallback timer.
+     *
+     * This method initiates both NWBrowser and NetServiceBrowser discovery processes,
+     * and sets a timeout after which direct connection attempts will be made if
+     * service discovery fails.
+     */
     private func startDiscovery() {
         isDiscoveryInProgress = true
         discoveryStatus = "Starting service discovery..."
@@ -50,6 +75,13 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         }
     }
     
+    /**
+     * Attempts direct connections to predefined server addresses.
+     *
+     * This method is called when service discovery fails or times out.
+     * It tries to connect directly to addresses in the defaultServerAddresses array
+     * one at a time with delays between attempts.
+     */
     private func tryDirectConnection() {
         guard currentDefaultAddressIndex < defaultServerAddresses.count, !isConnected else { return }
         
@@ -72,7 +104,11 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         }
     }
     
-    // Setup audio session for playing sounds
+    /**
+     * Sets up the audio session for playback.
+     *
+     * Configures the AVAudioSession to enable sound playback for score feedback.
+     */
     private func setupAudioSession() {
         do {
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
@@ -82,6 +118,12 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         }
     }
     
+    /**
+     * Sets up service discovery using multiple methods.
+     *
+     * Initializes both NWBrowser (Network framework) and NetServiceBrowser (Bonjour)
+     * to increase the chances of successful server discovery.
+     */
     private func setupServiceDiscovery() {
         discoveryStatus = "Setting up discovery services..."
         
@@ -92,6 +134,12 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         setupNetServiceBrowser()
     }
     
+    /**
+     * Sets up NWBrowser for service discovery using the Network framework.
+     *
+     * This method configures and starts an NWBrowser that looks for services
+     * with the type "_pose-server._tcp" in the "local" domain.
+     */
     private func setupNWBrowser() {
         // Create a browser to look for our service
         let parameters = NWParameters()
@@ -148,12 +196,23 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         browser?.start(queue: .main)
     }
     
+    /**
+     * Sets up NetServiceBrowser for Bonjour service discovery.
+     *
+     * Initializes and starts a NetServiceBrowser that searches for services
+     * with the type "_pose-server._tcp." in the "local." domain.
+     */
     private func setupNetServiceBrowser() {
         netServiceBrowser = NetServiceBrowser()
         netServiceBrowser?.delegate = self
         netServiceBrowser?.searchForServices(ofType: "_pose-server._tcp.", inDomain: "local.")
     }
     
+    /**
+     * Attempts to connect to a discovered NetService.
+     *
+     * @param service The NetService to connect to
+     */
     private func connectToNetService(_ service: NetService) {
         // Only try to connect if we're not already connected
         if !isConnected {
@@ -168,6 +227,11 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         }
     }
     
+    /**
+     * Attempts to connect to a server discovered via NWBrowser.
+     *
+     * This method converts an NWEndpoint to a NetService for resolution.
+     */
     private func connectToServer() {
         guard let endpoint = serverEndpoint else {
             print("No server endpoint available")
@@ -190,6 +254,11 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         }
     }
     
+    /**
+     * Sets up and initiates a WebSocket connection to the given URL.
+     *
+     * @param url The WebSocket server URL to connect to
+     */
     private func setupSocket(with url: URL) {
         var request = URLRequest(url: url)
         request.timeoutInterval = 5
@@ -205,6 +274,11 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         socket?.connect()
     }
     
+    /**
+     * Disconnects from the server and stops all discovery processes.
+     *
+     * This method cleans up all resources including timers, sockets, and browsers.
+     */
     func disconnect() {
         // Invalidate timers
         pingTimer?.invalidate()
@@ -230,18 +304,33 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         }
     }
     
-    // Send periodic pings to keep the connection alive
+    /**
+     * Starts a timer to send periodic ping messages to the server.
+     *
+     * This method maintains the WebSocket connection by sending pings
+     * at regular intervals to prevent timeout disconnections.
+     */
     private func startPingTimer() {
         pingTimer = Timer.scheduledTimer(withTimeInterval: 25, repeats: true) { [weak self] _ in
             self?.sendPing()
         }
     }
     
+    /**
+     * Sends a ping message to the server.
+     *
+     * This sends an Engine.IO ping (code "2") to the server to keep the connection alive.
+     */
     private func sendPing() {
         socket?.write(string: "2")
     }
     
-    // Send a properly formatted Socket.IO packet
+    /**
+     * Sends a Socket.IO formatted message to the server.
+     *
+     * @param event The event name to send
+     * @param data The data payload for the event
+     */
     private func sendSocketIOMessage(event: String, data: [String: Any]) {
         guard let jsonData = try? JSONSerialization.data(withJSONObject: data),
               let jsonString = String(data: jsonData, encoding: .utf8) else {
@@ -255,7 +344,11 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         print("Sent Socket.IO message: \(event)")
     }
     
-    // Process received score from server
+    /**
+     * Processes a score message received from the server.
+     *
+     * @param message The Socket.IO message containing score data
+     */
     private func processScoreMessage(message: String) {
         // Parse the JSON to extract the score
         do {
@@ -283,7 +376,11 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         }
     }
     
-    // Update score value and trigger callbacks
+    /**
+     * Updates the score value and triggers callbacks and sound feedback.
+     *
+     * @param score The numerical score value (0-100)
+     */
     private func updateScore(_ score: Int) {
         DispatchQueue.main.async {
             self.lastScore = score
@@ -297,6 +394,11 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         }
     }
     
+    /**
+     * Sends pose landmarks to the server for analysis.
+     *
+     * @param landmarks Array of pose landmarks to send
+     */
     func sendWorldKeypoints(landmarks: [PoseLandmark]) {
         // Only send if we are properly connected and handshake is complete
         guard let socket = socket, self.isConnected, hasCompletedHandshake, !landmarks.isEmpty else {
@@ -321,6 +423,11 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         sendSocketIOMessage(event: "pose_landmarks", data: payload)
     }
     
+    /**
+     * Sends a notification to the server that video capture has stopped.
+     *
+     * This informs the server that the client has stopped sending pose data.
+     */
     func sendStopNotification() {
         guard isConnected, hasCompletedHandshake else {
             print("Cannot send notification: WebSocket not connected")
@@ -345,6 +452,11 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         }
     }
     
+    /**
+     * Disconnects and reconnects to the server.
+     *
+     * This method performs a clean disconnect followed by a new discovery process.
+     */
     func reconnect() {
         disconnect()
         
@@ -357,7 +469,14 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         startDiscovery()
     }
     
-    // Play different sounds based on score
+    /**
+     * Plays a sound effect based on the score value.
+     *
+     * Different sounds are played for low, medium, and high scores,
+     * with additional effects for high scores.
+     *
+     * @param score The numerical score value (0-100)
+     */
     private func playSound(for score: Int) {
         guard audioPlayer == nil || !audioPlayer!.isPlaying else { return }
         
@@ -424,6 +543,13 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
     
     // MARK: - NetServiceBrowserDelegate
     
+    /**
+     * Called when a NetServiceBrowser discovers a service.
+     *
+     * @param browser The NetServiceBrowser that discovered the service
+     * @param service The discovered NetService
+     * @param moreComing Whether more results are forthcoming
+     */
     func netServiceBrowser(_ browser: NetServiceBrowser, didFind service: NetService, moreComing: Bool) {
         // Add the service to our list
         discoveredServices.append(service)
@@ -436,6 +562,13 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         connectToNetService(service)
     }
     
+    /**
+     * Called when a NetServiceBrowser removes a previously discovered service.
+     *
+     * @param browser The NetServiceBrowser that removed the service
+     * @param service The removed NetService
+     * @param moreComing Whether more results are forthcoming
+     */
     func netServiceBrowser(_ browser: NetServiceBrowser, didRemove service: NetService, moreComing: Bool) {
         // Remove the service from our list
         if let index = discoveredServices.firstIndex(of: service) {
@@ -447,12 +580,23 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         }
     }
     
+    /**
+     * Called when a NetServiceBrowser stops searching.
+     *
+     * @param browser The NetServiceBrowser that stopped
+     */
     func netServiceBrowserDidStopSearch(_ browser: NetServiceBrowser) {
         DispatchQueue.main.async {
             self.discoveryStatus = "Service browser stopped"
         }
     }
     
+    /**
+     * Called when a NetServiceBrowser fails to search.
+     *
+     * @param browser The NetServiceBrowser that failed
+     * @param errorDict A dictionary containing information about the failure
+     */
     func netServiceBrowser(_ browser: NetServiceBrowser, didNotSearch errorDict: [String: NSNumber]) {
         DispatchQueue.main.async {
             self.discoveryStatus = "NetServiceBrowser error: \(errorDict)"
@@ -467,6 +611,11 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
     
     // MARK: - NetServiceDelegate
     
+    /**
+     * Called when a NetService successfully resolves its address.
+     *
+     * @param sender The NetService that was resolved
+     */
     func netServiceDidResolveAddress(_ sender: NetService) {
         guard let hostName = sender.hostName else {
             print("Failed to get hostname")
@@ -490,6 +639,12 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
         }
     }
     
+    /**
+     * Called when a NetService fails to resolve its address.
+     *
+     * @param sender The NetService that failed to resolve
+     * @param errorDict A dictionary containing information about the failure
+     */
     func netService(_ sender: NetService, didNotResolve errorDict: [String: NSNumber]) {
         print("Failed to resolve: \(errorDict)")
         DispatchQueue.main.async {
@@ -507,8 +662,18 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
     }
 }
 
-// Handle WebSocket events
+// MARK: - WebSocketDelegate
+
+/**
+ * Extension handling WebSocket events from the Starscream library.
+ */
 extension WebSocketManager: WebSocketDelegate {
+    /**
+     * Processes WebSocket events.
+     *
+     * @param event The WebSocket event to process
+     * @param client The WebSocket client that generated the event
+     */
     func didReceive(event: Starscream.WebSocketEvent, client: any Starscream.WebSocketClient) {
         switch event {
         case .connected:
