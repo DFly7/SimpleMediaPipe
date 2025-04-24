@@ -78,7 +78,7 @@ struct SwingAnalysisView: View {
                                 Image(systemName: showBottomPanel ? "chevron.down" : "chevron.up")
                                     .font(.system(size: 14, weight: .bold))
                                     .foregroundColor(.white)
-                                    .padding(8)
+                                    .padding(10)
                                     .background(Color.black.opacity(0.6))
                                     .clipShape(Circle())
                             }
@@ -95,10 +95,10 @@ struct SwingAnalysisView: View {
                                         .font(.system(size: 12, weight: .medium))
                                 }
                                 .foregroundColor(.white)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
                                 .background(Color.black.opacity(0.6))
-                                .cornerRadius(16)
+                                .cornerRadius(20)
                             } else {
                                 HStack(spacing: 6) {
                                     Circle()
@@ -108,20 +108,21 @@ struct SwingAnalysisView: View {
                                         .font(.system(size: 12, weight: .medium))
                                 }
                                 .foregroundColor(.white)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 6)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
                                 .background(Color.black.opacity(0.6))
-                                .cornerRadius(16)
+                                .cornerRadius(20)
                             }
                         }
-                        .padding(12)
-                        .padding(.top, geometry.safeAreaInsets.top)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color.black.opacity(0.1))
                         
                         Spacer()
                         
                         // Only show the score display
                         if socketManager.lastScore > 0 {
-                            VStack(spacing: 0) {
+                            VStack(spacing: 4) {
                                 // Score header
                                 Text("SWING SCORE")
                                     .font(.system(size: 12, weight: .heavy))
@@ -140,14 +141,15 @@ struct SwingAnalysisView: View {
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 10)
                             }
-                            .padding(.vertical, 14)
-                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                            .padding(.horizontal, 24)
                             .background(
-                                RoundedRectangle(cornerRadius: 12)
+                                RoundedRectangle(cornerRadius: 16)
                                     .fill(Color.black.opacity(0.7))
                                     .shadow(color: Color.black.opacity(0.5), radius: 10, x: 0, y: 5)
                             )
                             .padding(.bottom, showBottomPanel ? 20 : (geometry.safeAreaInsets.bottom + 30))
+                            .frame(maxWidth: .infinity, alignment: .center)
                         }
                         
                         // Analyzing indicator when active (ONLY shown if camera is active)
@@ -162,11 +164,12 @@ struct SwingAnalysisView: View {
                                     .font(.system(size: 12, weight: .bold))
                                     .foregroundColor(.white)
                             }
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .padding(.horizontal, 16)
                             .background(Color.black.opacity(0.7))
                             .cornerRadius(20)
                             .padding(.bottom, geometry.safeAreaInsets.bottom + 10)
+                            .frame(maxWidth: .infinity, alignment: .center)
                         }
                     }
                 }
@@ -183,7 +186,9 @@ struct SwingAnalysisView: View {
                             
                             VStack(spacing: 20) {
                                 // Tools and options
-                                HStack(spacing: 25) {
+                                HStack {
+                                    Spacer()
+                                    
                                     // Reconnect button
                                     VStack(spacing: 6) {
                                         Button(action: {
@@ -203,6 +208,8 @@ struct SwingAnalysisView: View {
                                             .font(.system(size: 12))
                                             .foregroundColor(.white.opacity(0.7))
                                     }
+                                    
+                                    Spacer()
                                     
                                     // Add camera flip button
                                     VStack(spacing: 6) {
@@ -287,8 +294,10 @@ struct SwingAnalysisView: View {
                                             .font(.system(size: 12))
                                             .foregroundColor(.white.opacity(0.7))
                                     }
+                                    
+                                    Spacer()
                                 }
-                                .padding(.horizontal, 30)
+                                .padding(.horizontal, 10)
                                 .padding(.top, 20)
                                 
                                 // Analysing indicator in bottom panel when active
@@ -303,15 +312,16 @@ struct SwingAnalysisView: View {
                                             .font(.system(size: 12, weight: .bold))
                                             .foregroundColor(.white)
                                     }
-                                    .padding(.vertical, 8)
-                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 10)
+                                    .padding(.horizontal, 16)
                                     .background(Color.black.opacity(0.3))
                                     .cornerRadius(20)
+                                    .frame(maxWidth: .infinity, alignment: .center)
                                 }
                                 
                                 // Session info and messages
                                 if showControls {
-                                    VStack(spacing: 14) {
+                                    VStack(spacing: 18) {
                                         Divider()
                                             .background(Color.white.opacity(0.2))
                                             .padding(.horizontal, 40)
@@ -324,7 +334,7 @@ struct SwingAnalysisView: View {
                                         }) {
                                             HStack {
                                                 // Text and icon for the toggle
-                                                HStack(spacing: 8) {
+                                                HStack(spacing: 10) {
                                                     Image(systemName: "figure.stand")
                                                         .font(.system(size: 15))
                                                         .foregroundColor(.white)
@@ -350,9 +360,9 @@ struct SwingAnalysisView: View {
                                                 }
                                             }
                                             .padding(.horizontal, 30)
-                                            .padding(.vertical, 10)
+                                            .padding(.vertical, 12)
                                             .background(Color.black.opacity(0.2))
-                                            .cornerRadius(10)
+                                            .cornerRadius(12)
                                             .padding(.horizontal, 20)
                                         }
                                         .buttonStyle(PlainButtonStyle())
@@ -363,54 +373,55 @@ struct SwingAnalysisView: View {
                                             .padding(.vertical, 5)
                                         
                                         // Latest message from server
-                                        if !socketManager.lastFeedback.isEmpty {
-                                            VStack(alignment: .leading, spacing: 6) {
-                                                Text("SERVER MESSAGE")
-                                                    .font(.system(size: 10, weight: .bold))
-                                                    .foregroundColor(.white.opacity(0.5))
+                                        // if !socketManager.lastFeedback.isEmpty {
+                                        //     VStack(alignment: .leading, spacing: 8) {
+                                        //         Text("SERVER MESSAGE")
+                                        //             .font(.system(size: 10, weight: .bold))
+                                        //             .foregroundColor(.white.opacity(0.5))
                                                 
-                                                Text(socketManager.lastFeedback)
-                                                    .font(.system(size: 14, weight: .medium))
-                                                    .foregroundColor(.white.opacity(0.9))
-                                                    .multilineTextAlignment(.leading)
-                                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                            }
-                                            .padding(.horizontal, 30)
-                                        }
+                                        //         Text(socketManager.lastFeedback)
+                                        //             .font(.system(size: 14, weight: .medium))
+                                        //             .foregroundColor(.white.opacity(0.9))
+                                        //             .multilineTextAlignment(.leading)
+                                        //             .frame(maxWidth: .infinity, alignment: .leading)
+                                        //     }
+                                        //     .padding(.horizontal, 30)
+                                        //     .padding(.vertical, 5)
+                                        // }
                                         
-                                        HStack(spacing: 20) {
-                                            // Socket status
-                                            VStack(alignment: .leading, spacing: 6) {
-                                                Text("SERVER STATUS")
-                                                    .font(.system(size: 10, weight: .bold))
-                                                    .foregroundColor(.white.opacity(0.5))
+                                        // HStack(spacing: 20) {
+                                        //     // Socket status
+                                        //     VStack(alignment: .leading, spacing: 8) {
+                                        //         Text("SERVER STATUS")
+                                        //             .font(.system(size: 10, weight: .bold))
+                                        //             .foregroundColor(.white.opacity(0.5))
                                                 
-                                                HStack(spacing: 6) {
-                                                    Circle()
-                                                        .fill(socketManager.isConnected ? Color.green : Color.red)
-                                                        .frame(width: 8, height: 8)
+                                        //         HStack(spacing: 8) {
+                                        //             Circle()
+                                        //                 .fill(socketManager.isConnected ? Color.green : Color.red)
+                                        //                 .frame(width: 8, height: 8)
                                                     
-                                                    Text(socketManager.isConnected ? "Connected" : "Disconnected")
-                                                        .font(.system(size: 14, weight: .medium))
-                                                        .foregroundColor(.white.opacity(0.8))
-                                                }
-                                            }
+                                        //             Text(socketManager.isConnected ? "Connected" : "Disconnected")
+                                        //                 .font(.system(size: 14, weight: .medium))
+                                        //                 .foregroundColor(.white.opacity(0.8))
+                                        //         }
+                                        //     }
                                             
-                                            Spacer()
+                                        //     Spacer()
                                             
-                                            // Session info
-                                            VStack(alignment: .trailing, spacing: 6) {
-                                                Text("IP ADDRESS")
-                                                    .font(.system(size: 10, weight: .bold))
-                                                    .foregroundColor(.white.opacity(0.5))
+                                        //     // Session info
+                                        //     VStack(alignment: .trailing, spacing: 8) {
+                                        //         Text("IP ADDRESS")
+                                        //             .font(.system(size: 10, weight: .bold))
+                                        //             .foregroundColor(.white.opacity(0.5))
                                                 
-                                                Text("192.168.7.92:5001")
-                                                    .font(.system(size: 14, weight: .medium))
-                                                    .foregroundColor(.white.opacity(0.8))
-                                            }
-                                        }
-                                        .padding(.horizontal, 30)
-                                        .padding(.bottom, 20)
+                                        //         Text("192.168.7.92:5001")
+                                        //             .font(.system(size: 14, weight: .medium))
+                                        //             .foregroundColor(.white.opacity(0.8))
+                                        //     }
+                                        // }
+                                        // .padding(.horizontal, 30)
+                                        // .padding(.bottom, 20)
                                     }
                                 }
                             }
