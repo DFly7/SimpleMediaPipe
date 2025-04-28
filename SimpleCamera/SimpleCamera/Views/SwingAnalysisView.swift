@@ -10,6 +10,7 @@ struct SwingAnalysisView: View {
     @State private var showControls = true
     @State private var showBottomPanel = true
     @State private var showPoseOverlay = true
+    @State private var scoreTimer: Timer? = nil
     var onBackPressed: () -> Void
     
     var body: some View {
@@ -118,9 +119,7 @@ struct SwingAnalysisView: View {
                         .padding(.vertical, 12)
                         .background(Color.black.opacity(0.1))
                         
-                        Spacer()
-                        
-                        // Only show the score display
+                        // Score display at top center
                         if lastScore > 0 {
                             VStack(spacing: 4) {
                                 // Score header
@@ -148,9 +147,11 @@ struct SwingAnalysisView: View {
                                     .fill(Color.black.opacity(0.7))
                                     .shadow(color: Color.black.opacity(0.5), radius: 10, x: 0, y: 5)
                             )
-                            .padding(.bottom, showBottomPanel ? 20 : (geometry.safeAreaInsets.bottom + 30))
+                            .padding(.top, 20)
                             .frame(maxWidth: .infinity, alignment: .center)
                         }
+                        
+                        Spacer()
                         
                         // Analyzing indicator when active (ONLY shown if camera is active)
                         if isCameraActive && !showBottomPanel {
@@ -480,6 +481,16 @@ struct SwingAnalysisView: View {
         socketManager.onScoreReceived = { score in
             withAnimation(.spring()) {
                 self.lastScore = score
+                
+                // Cancel any existing timer
+                self.scoreTimer?.invalidate()
+                
+                // Create a new timer to clear the score after 10 seconds
+                self.scoreTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { _ in
+                    withAnimation(.spring()) {
+                        self.lastScore = 0
+                    }
+                }
             }
         }
     }
