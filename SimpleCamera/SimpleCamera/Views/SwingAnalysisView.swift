@@ -121,7 +121,7 @@ struct SwingAnalysisView: View {
                         Spacer()
                         
                         // Only show the score display
-                        if socketManager.lastScore > 0 {
+                        if lastScore > 0 {
                             VStack(spacing: 4) {
                                 // Score header
                                 Text("SWING SCORE")
@@ -130,12 +130,12 @@ struct SwingAnalysisView: View {
                                     .foregroundColor(.white.opacity(0.9))
                                 
                                 // Score value
-                                Text("\(socketManager.lastScore)")
+                                Text("\(lastScore)")
                                     .font(.system(size: 48, weight: .heavy))
-                                    .foregroundColor(scoreColor(for: socketManager.lastScore))
+                                    .foregroundColor(scoreColor(for: lastScore))
                                 
                                 // Score description
-                                Text(scoreDescription(for: socketManager.lastScore))
+                                Text(scoreDescription(for: lastScore))
                                     .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(.white.opacity(0.8))
                                     .multilineTextAlignment(.center)
