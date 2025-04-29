@@ -372,57 +372,6 @@ struct SwingAnalysisView: View {
                                             .background(Color.white.opacity(0.2))
                                             .padding(.horizontal, 40)
                                             .padding(.vertical, 5)
-                                        
-                                        // Latest message from server
-                                        // if !socketManager.lastFeedback.isEmpty {
-                                        //     VStack(alignment: .leading, spacing: 8) {
-                                        //         Text("SERVER MESSAGE")
-                                        //             .font(.system(size: 10, weight: .bold))
-                                        //             .foregroundColor(.white.opacity(0.5))
-                                                
-                                        //         Text(socketManager.lastFeedback)
-                                        //             .font(.system(size: 14, weight: .medium))
-                                        //             .foregroundColor(.white.opacity(0.9))
-                                        //             .multilineTextAlignment(.leading)
-                                        //             .frame(maxWidth: .infinity, alignment: .leading)
-                                        //     }
-                                        //     .padding(.horizontal, 30)
-                                        //     .padding(.vertical, 5)
-                                        // }
-                                        
-                                        // HStack(spacing: 20) {
-                                        //     // Socket status
-                                        //     VStack(alignment: .leading, spacing: 8) {
-                                        //         Text("SERVER STATUS")
-                                        //             .font(.system(size: 10, weight: .bold))
-                                        //             .foregroundColor(.white.opacity(0.5))
-                                                
-                                        //         HStack(spacing: 8) {
-                                        //             Circle()
-                                        //                 .fill(socketManager.isConnected ? Color.green : Color.red)
-                                        //                 .frame(width: 8, height: 8)
-                                                    
-                                        //             Text(socketManager.isConnected ? "Connected" : "Disconnected")
-                                        //                 .font(.system(size: 14, weight: .medium))
-                                        //                 .foregroundColor(.white.opacity(0.8))
-                                        //         }
-                                        //     }
-                                            
-                                        //     Spacer()
-                                            
-                                        //     // Session info
-                                        //     VStack(alignment: .trailing, spacing: 8) {
-                                        //         Text("IP ADDRESS")
-                                        //             .font(.system(size: 10, weight: .bold))
-                                        //             .foregroundColor(.white.opacity(0.5))
-                                                
-                                        //         Text("192.168.7.92:5001")
-                                        //             .font(.system(size: 14, weight: .medium))
-                                        //             .foregroundColor(.white.opacity(0.8))
-                                        //     }
-                                        // }
-                                        // .padding(.horizontal, 30)
-                                        // .padding(.bottom, 20)
                                     }
                                 }
                             }
