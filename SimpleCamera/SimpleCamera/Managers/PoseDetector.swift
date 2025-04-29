@@ -140,7 +140,7 @@ class PoseDetector: NSObject, PoseLandmarkerLiveStreamDelegate {
                         x: CGFloat(landmark.x),
                         y: CGFloat(landmark.y),
                         z: CGFloat(landmark.z),
-                        visibility: Float(landmark.visibility ?? 1.0)
+                        visibility: Float(truncating: landmark.visibility ?? 1.0)
                     )
                     customLandmarks.append(customLandmark)
                 }
@@ -153,7 +153,7 @@ class PoseDetector: NSObject, PoseLandmarkerLiveStreamDelegate {
                             x: CGFloat(landmark.x),
                             y: CGFloat(landmark.y),
                             z: CGFloat(landmark.z),
-                            visibility: Float(landmark.visibility ?? 1.0)
+                            visibility: Float(truncating: landmark.visibility ?? 1.0)
                         )
                         customWorldLandmarks.append(customWorldLandmark)
                     }

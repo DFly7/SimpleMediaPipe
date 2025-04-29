@@ -14,6 +14,7 @@ class WebSocketManager: NSObject, ObservableObject {
     @Published var isConnected = false
     @Published var lastFeedback = ""
     @Published var lastScore: Int = 0
+    @Published var lastDeviation: Float = 0.0
     @Published var discoveryStatus: String = "Not started"
     
     // Private properties
@@ -31,11 +32,20 @@ class WebSocketManager: NSObject, ObservableObject {
     // WebSocket connection components
     private lazy var socketConnectionManager = SocketConnectionManager(delegate: self)
     
-    // Audio feedback component
+    // Audio feedback components
     private lazy var audioFeedbackManager = AudioFeedbackManager()
+    private lazy var deviationSoundFeedback = DeviationSoundFeedback()
     
-    // Callback for when a score is received
+    // Callbacks
     var onScoreReceived: ((Int) -> Void)? = nil
+    var onDeviationReceived: ((Float) -> Void)? = nil
+    
+    // Deviation feedback control
+    @Published var deviationFeedbackEnabled: Bool = true {
+        didSet {
+            deviationSoundFeedback.setEnabled(deviationFeedbackEnabled)
+        }
+    }
     
     /**
      * Initializes the WebSocketManager and starts the server discovery process.
@@ -43,6 +53,9 @@ class WebSocketManager: NSObject, ObservableObject {
     override init() {
         super.init()
         startDiscovery()
+        
+        // Don't start deviation feedback until first deviation is received
+        // deviationSoundFeedback.startFeedback() - removed
     }
     
     /**
@@ -201,6 +214,29 @@ class WebSocketManager: NSObject, ObservableObject {
             self.onScoreReceived?(score)
         }
     }
+    
+    /**
+     * Updates the deviation value and triggers callbacks and sound feedback.
+     *
+     * @param deviation The deviation value (0.0-1.0)
+     */
+    private func updateDeviation(_ deviation: Float) {
+        DispatchQueue.main.async {
+            self.lastDeviation = deviation
+            self.lastFeedback = "Received deviation: \(deviation)"
+            
+            // Start feedback if this is the first deviation
+            self.deviationSoundFeedback.setDeviation(deviation)
+            
+            // Start feedback if not already started
+            if self.deviationFeedbackEnabled {
+                self.deviationSoundFeedback.startFeedback()
+            }
+            
+            // Notify observer
+            self.onDeviationReceived?(deviation)
+        }
+    }
 }
 
 // MARK: - ServiceDiscoveryDelegate
@@ -241,6 +277,10 @@ extension WebSocketManager: SocketConnectionDelegate {
     
     func didReceiveScore(_ score: Int) {
         updateScore(score)
+    }
+    
+    func didReceiveDeviation(_ deviationValue: Float) {
+        updateDeviation(deviationValue)
     }
     
     func didReceiveFeedback(_ feedback: String) {

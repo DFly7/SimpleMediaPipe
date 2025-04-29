@@ -9,6 +9,7 @@ protocol SocketConnectionDelegate: AnyObject {
     func didCompleteHandshake()
     func didDisconnect()
     func didReceiveScore(_ score: Int)
+    func didReceiveDeviation(_ deviationValue: Float)
     func didReceiveFeedback(_ feedback: String)
 }
 
@@ -116,6 +117,36 @@ class SocketConnectionManager: NSObject, WebSocketDelegate {
         }
     }
     
+    /**
+     * Processes a deviation message received from the server.
+     */
+    private func processDeviationMessage(message: String) {
+        // Parse the JSON to extract the deviation value
+        do {
+            // First we need to extract the JSON part from the Socket.IO message
+            if let dataStartIndex = message.range(of: "42[\"deviation\",")?.upperBound,
+               let dataEndIndex = message.range(of: "]", options: .backwards)?.lowerBound {
+                
+                let jsonSubstring = message[dataStartIndex..<dataEndIndex]
+                
+                // Handle both formats: direct number or JSON object
+                if let deviationValue = Float(jsonSubstring.trimmingCharacters(in: .whitespacesAndNewlines)) {
+                    // Direct number format
+                    delegate?.didReceiveDeviation(deviationValue)
+                } else {
+                    // JSON object format
+                    if let data = jsonSubstring.data(using: .utf8),
+                       let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let deviation = json["value"] as? Float {
+                        delegate?.didReceiveDeviation(deviation)
+                    }
+                }
+            }
+        } catch {
+            print("Error parsing deviation message: \(error)")
+        }
+    }
+    
     // MARK: - WebSocketDelegate
     
     func didReceive(event: Starscream.WebSocketEvent, client: any Starscream.WebSocketClient) {
@@ -164,6 +195,9 @@ class SocketConnectionManager: NSObject, WebSocketDelegate {
                 if string.contains("score") {
                     // This is a score message from the server
                     self.processScoreMessage(message: string)
+                } else if string.contains("deviation") {
+                    // This is a deviation message from the server
+                    self.processDeviationMessage(message: string)
                 } else if let startIndex = string.range(of: "[")?.upperBound,
                    let endIndex = string.range(of: "]", options: .backwards)?.lowerBound {
                     let content = String(string[startIndex..<endIndex])
