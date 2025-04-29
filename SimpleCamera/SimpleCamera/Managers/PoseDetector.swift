@@ -105,7 +105,7 @@ class PoseDetector: NSObject, PoseLandmarkerLiveStreamDelegate {
         if let validResult = result, !validResult.landmarks.isEmpty {
             self.currentPoseResult = validResult
             self.hasNewData = true
-            print("Got pose detection result with \(validResult.landmarks[0].count) landmarks")
+//            print("Got pose detection result with \(validResult.landmarks[0].count) landmarks")
             
             // Also print information about world landmarks if available
             if !validResult.worldLandmarks.isEmpty {

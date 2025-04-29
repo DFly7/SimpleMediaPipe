@@ -31,7 +31,7 @@ class WebSocketManager: NSObject, ObservableObject, NetServiceBrowserDelegate, N
     private var resolvingService: NetService?
     private var serverEndpoint: NWEndpoint?
     private var discoveryTimer: Timer?
-    private var defaultServerAddresses = ["192.168.7.92", "localhost", "127.0.0.1"]
+    private var defaultServerAddresses = ["10.138.161.105", "192.168.7.92", "localhost", "127.0.0.1"]
     private var currentDefaultAddressIndex = 0
     private var isDiscoveryInProgress = false
     
