@@ -138,7 +138,7 @@ class SocketConnectionManager: NSObject, WebSocketDelegate {
                     if let data = jsonSubstring.data(using: .utf8),
                        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                        let deviation = json["value"] as? Float {
-                        delegate?.didReceiveDeviation(deviation)
+                         delegate?.didReceiveDeviation(deviation)
                     }
                 }
             }

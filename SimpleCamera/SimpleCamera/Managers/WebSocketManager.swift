@@ -280,7 +280,7 @@ extension WebSocketManager: SocketConnectionDelegate {
     }
     
     func didReceiveDeviation(_ deviationValue: Float) {
-        updateDeviation(deviationValue)
+//        updateDeviation(deviationValue)
     }
     
     func didReceiveFeedback(_ feedback: String) {
